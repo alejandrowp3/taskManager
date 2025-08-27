@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Search, Filter } from 'lucide-react';
 import { TaskFilter as TaskFilterType } from '../types';
 

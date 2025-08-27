@@ -70,7 +70,7 @@ export function useKanbanDragAndDrop(
     }
   };
 
-  const handleDragLeave = (e: React.DragEvent, targetStatus: TaskStatus) => {
+  const handleDragLeave = (_e: React.DragEvent, targetStatus: TaskStatus) => {
     dragCounter.current[targetStatus]--;
     
     if (dragCounter.current[targetStatus] === 0) {

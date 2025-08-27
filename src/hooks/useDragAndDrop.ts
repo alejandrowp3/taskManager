@@ -6,7 +6,7 @@ export interface DragItem {
 }
 
 export function useDragAndDrop<T extends { id: string }>(
-  items: T[],
+  _items: T[],
   onReorder: (fromIndex: number, toIndex: number) => void
 ) {
   const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
@@ -55,7 +55,7 @@ export function useDragAndDrop<T extends { id: string }>(
     }
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (_e: React.DragEvent) => {
     dragCounter.current--;
     
     if (dragCounter.current === 0) {

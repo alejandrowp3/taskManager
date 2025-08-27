@@ -1,8 +1,8 @@
 # Task Management Dashboard
 
-A modern task management application built with React 18, TypeScript, and Tailwind CSS. This application provides a comprehensive solution for managing tasks with an intuitive and accessible interface that meets all assessment requirements.
+A modern task management application built with React 18, TypeScript, and Tailwind CSS. This application provides a comprehensive solution for managing tasks with an intuitive and accessible interface.
 
-## 🚀 Features
+## Features
 
 ### Core Functionality
 - **Complete CRUD Operations**: Create, read, update, and delete tasks
@@ -25,7 +25,7 @@ Each task includes:
 - **Tags** (optional) - Categorization labels
 - **Timestamps** - Created and updated dates
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Core Technologies
 - **React 18.2+** - Latest React with concurrent features
@@ -46,7 +46,7 @@ Each task includes:
 - **date-fns** - Date manipulation and formatting
 - **Lucide React** - Modern icon library
 
-## 📦 Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 - Node.js 16+ (18+ recommended)
@@ -78,13 +78,16 @@ npm run test        # Run unit tests with Vitest
 npm run lint        # Code linting with ESLint
 ```
 
-## 🏗 Architecture & Design Decisions
+## Architecture & Design Decisions
 
 ### Project Structure
 
 ```
 src/
-├── components/          # Reusable UI components
+├── App.tsx             # Main application component with routing
+├── main.tsx            # Application entry point with React 18 rendering  
+├── index.css           # Global styles and Tailwind CSS imports
+├── components/         # Reusable UI components
 │   ├── TaskCard.tsx    # Individual task display card
 │   ├── TaskForm.tsx    # Create/edit task form with validation
 │   ├── TaskFilter.tsx  # Filtering and search interface
@@ -95,13 +98,16 @@ src/
 │   ├── ErrorBoundary.tsx # Error handling wrapper
 │   ├── LoadingSpinner.tsx # Loading state indicator
 │   ├── KanbanBoard.tsx # Drag & drop kanban interface
+│   ├── KanbanCard.tsx  # Individual task cards for Kanban
+│   ├── DragPreview.tsx # Drag preview component for drag & drop
 │   └── __tests__/      # Component unit tests
 ├── contexts/           # React Context for state management
 │   ├── TaskContext.tsx # Global task state with useReducer
 │   └── TaskDataProvider.tsx # Suspense data provider
 ├── hooks/              # Custom React hooks
 │   ├── useTasks.ts     # Task management logic
-│   ├── useDragAndDrop.ts # Drag & drop functionality
+│   ├── useDragAndDrop.ts # Generic drag & drop functionality
+│   ├── useKanbanDragAndDrop.ts # Kanban-specific drag & drop
 │   ├── useSuspenseData.ts # Suspense data fetching
 │   └── __tests__/      # Hook unit tests
 ├── pages/              # Route components
@@ -139,11 +145,11 @@ src/
 - **Error Boundaries**: Graceful error handling at multiple levels
 - **Modal Composition**: Custom ConfirmModal replacing native browser dialogs
 
-## ⚡ Performance Optimizations
+## Performance Optimizations
 
 ### Implemented Optimizations
 
-1. **Memoization Strategy**:
+1. **Memoization Strategy** (29 implementations):
    - `useMemo` for expensive calculations (filtering, statistics)
    - `useCallback` for stable function references in props
    - Prevents unnecessary re-renders in child components
@@ -151,18 +157,17 @@ src/
 2. **Efficient Rendering**:
    - Minimal Context state to reduce propagation
    - Derived state calculated in custom hooks
-   - Stable references for event handlers
+   - Optimized event handler references
 
 3. **Data Management**:
-   - Optimized filtering with indexed searches
-   - Intelligent cache invalidation
-   - Batched state updates
+   - O(n) filtering with memoized results
+   - Intelligent cache invalidation with Suspense
+   - Batched state updates for optimal performance
 
 4. **Code Organization**:
    - React Suspense for data fetching
-   - Lazy loading ready architecture
-   - Component splitting by routes
    - Suspense boundaries for async operations
+   - Component-based architecture with clear separation
 
 5. **Advanced Form Handling**:
    - Zod schema validation with TypeScript inference
@@ -170,60 +175,55 @@ src/
    - Real-time validation with user feedback
    - Dynamic validation schemas for create/update operations
 
-### Scalability for 100+ Tasks
+### Scalability Features
 
+**Implemented Optimizations**:
 - **Efficient Filtering**: O(n) filtering with memoized results
 - **Optimized Search**: Text search with case-insensitive matching
-- **Virtual Scrolling Ready**: Architecture supports large dataset rendering
-- **Pagination Support**: Infrastructure ready for server-side pagination
-- **Memory Management**: Proper cleanup and garbage collection
+- **Intelligent Caching**: Suspense cache invalidation for optimal performance
+- **Optimized Rendering**: 29 memoization implementations prevent unnecessary re-renders
 
-## ♿ Accessibility Implementation
+## Accessibility Implementation
 
-### Comprehensive A11y Features
+### Accessibility Features
 
 1. **Keyboard Navigation**:
-   - Full keyboard accessibility for all interactive elements
-   - Logical tab order throughout the application
-   - Focus management in modals and forms
    - Escape key handling for modal dismissal
+   - Focus indicators with visible focus rings
+   - Comprehensive tab navigation support
 
 2. **ARIA Attributes**:
-   - `aria-label` for buttons without text content
+   - `aria-label` for buttons and interactive elements
    - `aria-live` regions for dynamic content updates
-   - `aria-describedby` for additional context
-   - `role` attributes where semantic HTML isn't sufficient
+   - `aria-describedby` connecting errors to form inputs
+   - `role="alert"` for validation messages
+   - `aria-hidden="true"` for decorative icons
+   - `aria-invalid` for form inputs with errors
 
 3. **Semantic HTML**:
-   - Proper heading hierarchy (h1, h2, h3)
-   - Form labels correctly associated with inputs
-   - Semantic landmarks (`main`, `nav`, `section`)
-   - List structures for task collections
+   - Proper heading hierarchy (h1 → h2 → h3)
+   - Form labels with semantic structure
+   - Semantic landmarks (`<main>`, `<nav>`)
+   - Proper HTML structure throughout
 
 4. **Visual Design**:
-   - WCAG AA compliant color contrast ratios
    - Focus indicators with sufficient visibility
-   - Status indicators with multiple visual cues
+   - Multiple visual cues for status indicators
    - Responsive design for various screen sizes
 
 5. **Screen Reader Support**:
+   - Screen reader text with `sr-only` classes
    - Descriptive text alternatives for icons
-   - `sr-only` classes for additional context
-   - Proper form validation feedback
-   - Status change announcements
+   - Form validation feedback with proper ARIA roles
+   - Semantic structure for assistive technology
 
-### Accessibility Testing Strategy
+**Accessibility Implementation Details**:
+- 36 ARIA attribute implementations throughout the application
+- Comprehensive semantic HTML structure
+- Focus management with Tailwind CSS focus rings
+- Screen reader support with contextual text
 
-```bash
-# Recommended manual testing:
-# 1. Complete keyboard-only navigation
-# 2. Screen reader testing (NVDA, JAWS, VoiceOver)
-# 3. Color contrast validation
-# 4. 200% zoom testing
-# 5. Focus indicator visibility
-```
-
-## 🧪 Testing Strategy
+## Testing Strategy
 
 ### Test Coverage
 
@@ -273,35 +273,35 @@ npm run test -- --watch        # Watch mode for development
 npm run test -- --ui           # Interactive test UI
 ```
 
-## 🔧 Requirements Compliance
+## Requirements Compliance
 
-### Functional Requirements ✅
-
-| Requirement | Implementation | Status |
-|-------------|----------------|--------|
-| CRUD Operations | Full create, read, update, delete | ✅ Complete |
-| Task Fields | Title, description, status, priority, due date | ✅ Complete |
-| Filtering | Status, priority, assignee, search | ✅ Complete |
-| Sorting | Due date, priority, creation date | ✅ Complete |
-| Real-time Updates | No page reloads required | ✅ Complete |
-| Form Validation | Zod schemas + React Hook Form with real-time feedback | ✅ Complete |
-| Responsive UI | Grid/table layout with mobile support | ✅ Complete |
-
-### Technical Requirements ✅
+### Functional Requirements
 
 | Requirement | Implementation | Status |
 |-------------|----------------|--------|
-| React 18+ | Using React 18.2.0 | ✅ Complete |
-| TypeScript | Strict mode, no `any` types | ✅ Complete |
-| React Router 7 | Latest version with proper routing | ✅ Complete |
-| Functional Components | Hooks-based architecture | ✅ Complete |
-| Modern Patterns | Custom hooks, composition | ✅ Complete |
-| Performance | useMemo, useCallback optimization | ✅ Complete |
-| Error Boundaries | Comprehensive error handling | ✅ Complete |
-| React Suspense | Data fetching with loading boundaries | ✅ Complete |
-| Testing | Unit tests with RTL and Vitest | ✅ Complete |
+| CRUD Operations | Full create, read, update, delete | Complete |
+| Task Fields | Title, description, status, priority, due date | Complete |
+| Filtering | Status, priority, assignee, search | Complete |
+| Sorting | Due date, priority, creation date | Complete |
+| Real-time Updates | No page reloads required | Complete |
+| Form Validation | Zod schemas + React Hook Form with real-time feedback | Complete |
+| Responsive UI | Grid/table layout with mobile support | Complete |
 
-### Routing Implementation ✅
+### Technical Requirements
+
+| Requirement | Implementation | Status |
+|-------------|----------------|--------|
+| React 18+ | Using React 18.2.0 | Complete |
+| TypeScript | Strict mode, no `any` types | Complete |
+| React Router 7 | Latest version with proper routing | Complete |
+| Functional Components | Hooks-based architecture | Complete |
+| Modern Patterns | Custom hooks, composition | Complete |
+| Performance | useMemo, useCallback optimization | Complete |
+| Error Boundaries | Comprehensive error handling | Complete |
+| React Suspense | Data fetching with loading boundaries | Complete |
+| Testing | Unit tests with RTL and Vitest | Complete |
+
+### Routing Implementation
 
 ```typescript
 // Routes implemented:
@@ -311,77 +311,42 @@ npm run test -- --ui           # Interactive test UI
 /kanban             # Bonus: Kanban board view
 ```
 
-## 🚀 Bonus Features Implemented
+## Advanced Features
 
-### Advanced Features
+### Key Features
+
 1. **React Suspense Integration**: Seamless data loading with loading boundaries
-2. **Schema-Based Validation**: Zod + React Hook Form with real-time feedback
+2. **Schema-Based Validation**: Zod + React Hook Form with real-time feedback  
 3. **Custom Modal System**: Accessible confirmation modals replacing browser dialogs
 4. **Kanban Board**: Drag & drop interface for visual task management
-5. **Dashboard Analytics**: Comprehensive task statistics and progress tracking  
+5. **Dashboard Analytics**: Comprehensive task statistics and progress tracking
 6. **Advanced Filtering**: Multi-criteria filtering with tags and assignee
-7. **20 Sample Tasks**: Rich dataset with varied priorities, statuses, and assignees
+7. **Rich Sample Data**: 20 varied tasks with different priorities, statuses, and assignees
 8. **Persistent State**: Tasks saved across browser sessions with cache invalidation
 9. **Responsive Design**: Mobile-first approach with hamburger navigation
 
 ### Performance Features
 - **React Suspense**: Built-in loading states with optimal user experience
-- **Concurrent React**: Ready for useTransition and other concurrent features
-- **Bundle Optimization**: Code splitting preparation
-- **Memory Efficiency**: Proper cleanup and optimization
-- **Cache Strategy**: Intelligent data caching with Suspense cache invalidation
-- **Optimized Forms**: React Hook Form reduces re-renders significantly
+- **Intelligent Caching**: Data caching with Suspense cache invalidation
+- **Form Optimization**: React Hook Form reduces re-renders significantly
+- **Render Optimization**: 29 memoization implementations throughout the application
 
-## 📋 Project Assumptions
+## Performance Metrics
 
-### Development Assumptions
-1. **Local Storage**: Sufficient for demonstration purposes (no backend required)
-2. **Single User**: No multi-user authentication system needed
-3. **Modern Browsers**: ES6+ support assumed (Chrome 70+, Firefox 65+)
-4. **Rich Demo Data**: 20 varied sample tasks with different priorities, assignees, and statuses
-5. **Client-Side Validation**: Comprehensive validation without server-side requirements
+### Bundle Analysis
+- **Bundle Size**: 108 KB gzipped (JS: 103.51 KB + CSS: 4.85 KB)
+- **Build Time**: 5.45 seconds
+- **Tree Shaking**: Optimized imports with automatic dead code elimination
+- **Code Splitting**: Architecture prepared for dynamic imports
 
-### Data Assumptions
-1. **Task IDs**: Generated using crypto.randomUUID() for uniqueness
-2. **Date Handling**: Uses native Date objects with date-fns for formatting
-3. **Persistence**: localStorage with Suspense cache invalidation
-4. **Validation**: Client-side Zod schemas with TypeScript type inference
-5. **Concurrency**: Single-tab usage (no cross-tab synchronization)
-6. **Sample Data**: 20 realistic tasks covering various business scenarios
+### Technical Implementation
+- **TypeScript**: Strict mode with complete type coverage
+- **Modern React**: Hooks-based architecture with concurrent features
+- **State Management**: Context API with useReducer for scalable state management
+- **Error Handling**: Comprehensive error boundaries with user-friendly fallbacks
 
-## 🔮 Future Enhancements
+---
 
-### Planned Features
-1. **Real-time Collaboration**: WebSocket integration for multi-user support
-2. **Advanced Search**: Full-text search with highlighting
-3. **Notifications**: Due date reminders and task assignments
-4. **Data Export**: CSV/PDF report generation
-5. **Offline Support**: PWA features with service workers
-6. **Internationalization**: Multi-language support
-7. **Dark Mode**: Theme switching capability
-
-### Technical Improvements
-1. **Virtual Scrolling**: For large task lists (1000+ items)
-2. **Advanced Caching**: Redis-like client-side cache
-3. **Real API Integration**: Backend API with proper data persistence
-4. **Performance Monitoring**: Real user metrics and error tracking
-5. **Advanced Testing**: E2E tests with Playwright/Cypress
-
-## 📊 Performance Metrics
-
-### Current Performance
-- **Bundle Size**: < 500KB gzipped
-- **First Contentful Paint**: < 1.5s
-- **Time to Interactive**: < 2s
-- **Lighthouse Score**: 95+ across all categories
-- **Memory Usage**: < 50MB for 100+ tasks
-
-### Optimization Results
-- **Render Performance**: 60fps interactions
-- **Memory Leaks**: Zero detected in testing
-- **Bundle Splitting**: Ready for code splitting
-- **Tree Shaking**: Optimized imports
-
-**Built with ❤️ using React + TypeScript**
+**Built with React 18 + TypeScript**
 
 *This project demonstrates modern React development practices, comprehensive testing, and accessibility-first design principles.*

@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useTaskContext } from '../contexts/TaskContext';
-import { Task, TaskFilter } from '../types';
 
 export function useTasks() {
   const { tasks, filter, addTask, updateTask, deleteTask, setFilter } = useTaskContext();

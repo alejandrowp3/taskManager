@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { Home, CheckSquare, LayoutGrid, Menu, X } from 'lucide-react';
 import { TaskProvider } from './contexts/TaskContext';

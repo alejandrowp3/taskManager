@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Plus, Filter, Search, LayoutGrid } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, Search, LayoutGrid } from 'lucide-react';
 import { KanbanBoard } from '../components/KanbanBoard';
 import { TaskForm } from '../components/TaskForm';
 import { ValidationMessage } from '../components/ValidationMessage';

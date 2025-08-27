@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { TaskStatus, Priority } from '../types';
 
 // Form input schema (without transforms for React Hook Form compatibility)
 export const taskFormSchema = z.object({

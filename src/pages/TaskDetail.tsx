@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, Calendar, User, Tag, Clock, AlertCircle } from 'lucide-react';
 import { TaskForm } from '../components/TaskForm';

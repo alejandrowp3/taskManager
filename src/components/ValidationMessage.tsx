@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { ValidationError } from '../types';
 
 interface ValidationMessageProps {
