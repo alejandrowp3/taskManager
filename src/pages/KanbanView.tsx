@@ -2,8 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { Plus, Filter, Search, LayoutGrid } from 'lucide-react';
 import { KanbanBoard } from '../components/KanbanBoard';
 import { TaskForm } from '../components/TaskForm';
+import { ValidationMessage } from '../components/ValidationMessage';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { useTasks } from '../hooks/useTasks';
-import { Task, TaskStatus } from '../types';
+import { Task, TaskStatus, TaskOperationResult } from '../types';
 
 export function KanbanView() {
   const { tasks, addTask, updateTask, deleteTask, filter, setFilter } = useTasks();
@@ -11,13 +13,24 @@ export function KanbanView() {
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>('To Do');
   const [searchTerm, setSearchTerm] = useState('');
+  const [operationResult, setOperationResult] = useState<TaskOperationResult | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; taskId?: string; isLoading: boolean }>({
+    isOpen: false,
+    taskId: undefined,
+    isLoading: false
+  });
 
   // Filter tasks based on current filters and search
   const filteredTasks = tasks.filter(task => {
     if (filter.status && task.status !== filter.status) return false;
     if (filter.priority && task.priority !== filter.priority) return false;
-    if (filter.assignee && task.assignee !== filter.assignee) return false;
-    if (searchTerm && !task.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (filter.assignee && (!task.assignee || !task.assignee.toLowerCase().includes(filter.assignee.toLowerCase()))) return false;
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesTitle = task.title.toLowerCase().includes(searchLower);
+      const matchesDescription = task.description?.toLowerCase().includes(searchLower);
+      if (!matchesTitle && !matchesDescription) return false;
+    }
     if (filter.tags && filter.tags.length > 0) {
       const hasMatchingTag = filter.tags.some(tag => 
         task.tags?.includes(tag)
@@ -27,28 +40,95 @@ export function KanbanView() {
     return true;
   });
 
-  const handleMoveTask = useCallback((taskId: string, newStatus: TaskStatus) => {
-    updateTask(taskId, { status: newStatus });
+  const handleMoveTask = useCallback(async (taskId: string, newStatus: TaskStatus) => {
+    try {
+      const result = await updateTask(taskId, { status: newStatus });
+      if (!result.success) {
+        setOperationResult(result);
+      }
+    } catch (error) {
+      console.error('Error moving task:', error);
+      setOperationResult({
+        success: false,
+        message: 'Failed to move task'
+      });
+    }
   }, [updateTask]);
 
-  const handleAddTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    addTask(taskData);
-    setIsFormOpen(false);
-    setNewTaskStatus('To Do');
+  const handleAddTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const result = await addTask(taskData);
+      setOperationResult(result);
+      
+      if (result.success) {
+        setIsFormOpen(false);
+        setNewTaskStatus('To Do');
+        // Clear success message after 3 seconds
+        setTimeout(() => setOperationResult(null), 3000);
+      }
+    } catch (error) {
+      console.error('Error adding task:', error);
+      setOperationResult({
+        success: false,
+        message: 'An unexpected error occurred'
+      });
+    }
   }, [addTask]);
 
-  const handleEditTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (editingTask) {
-      updateTask(editingTask.id, taskData);
-      setEditingTask(undefined);
+  const handleEditTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!editingTask) return;
+    
+    try {
+      const result = await updateTask(editingTask.id, taskData);
+      setOperationResult(result);
+      
+      if (result.success) {
+        setEditingTask(undefined);
+        // Clear success message after 3 seconds
+        setTimeout(() => setOperationResult(null), 3000);
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      setOperationResult({
+        success: false,
+        message: 'An unexpected error occurred'
+      });
     }
   }, [editingTask, updateTask]);
 
   const handleDeleteTask = useCallback((id: string) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      deleteTask(id);
+    setDeleteConfirm({ isOpen: true, taskId: id, isLoading: false });
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteConfirm.taskId) return;
+    
+    setDeleteConfirm(prev => ({ ...prev, isLoading: true }));
+    
+    try {
+      const result = await deleteTask(deleteConfirm.taskId);
+      setOperationResult(result);
+      
+      if (result.success) {
+        // Clear success message after 3 seconds
+        setTimeout(() => setOperationResult(null), 3000);
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      setOperationResult({
+        success: false,
+        message: 'An unexpected error occurred while deleting the task'
+      });
+    } finally {
+      setDeleteConfirm({ isOpen: false, taskId: undefined, isLoading: false });
     }
-  }, [deleteTask]);
+  }, [deleteTask, deleteConfirm.taskId]);
+
+  const handleCancelDelete = useCallback(() => {
+    if (!deleteConfirm.isLoading) {
+      setDeleteConfirm({ isOpen: false, taskId: undefined, isLoading: false });
+    }
+  }, [deleteConfirm.isLoading]);
 
   const handleAddTaskClick = useCallback((status: TaskStatus) => {
     setNewTaskStatus(status);
@@ -80,6 +160,16 @@ export function KanbanView() {
           New Task
         </button>
       </div>
+
+      {/* Operation Result Messages */}
+      {operationResult && (
+        <ValidationMessage
+          message={operationResult.message}
+          errors={operationResult.errors}
+          type={operationResult.success ? 'success' : 'error'}
+          className="mb-4"
+        />
+      )}
 
       {/* Filters and Search */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -158,10 +248,24 @@ export function KanbanView() {
             setIsFormOpen(false);
             setEditingTask(undefined);
             setNewTaskStatus('To Do');
+            setOperationResult(null); // Clear any existing error messages
           }}
           defaultStatus={editingTask?.status || newTaskStatus}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={deleteConfirm.isLoading}
+      />
     </div>
   );
 }

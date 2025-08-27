@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, Calendar, User, Tag, Clock, AlertCircle } from 'lucide-react';
 import { TaskForm } from '../components/TaskForm';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { ValidationMessage } from '../components/ValidationMessage';
 import { useTasks } from '../hooks/useTasks';
+import { TaskOperationResult, Task } from '../types';
 import { format } from 'date-fns';
 
 export function TaskDetail() {
@@ -10,6 +13,11 @@ export function TaskDetail() {
   const navigate = useNavigate();
   const { allTasks, updateTask, deleteTask } = useTasks();
   const [isEditing, setIsEditing] = useState(false);
+  const [operationResult, setOperationResult] = useState<TaskOperationResult | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; isLoading: boolean }>({
+    isOpen: false,
+    isLoading: false
+  });
 
   const task = allTasks.find(t => t.id === id);
 
@@ -30,15 +38,53 @@ export function TaskDetail() {
     );
   }
 
-  const handleEdit = (taskData: any) => {
-    updateTask(task.id, taskData);
-    setIsEditing(false);
+  const handleEdit = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const result = await updateTask(task.id, taskData);
+      setOperationResult(result);
+      
+      if (result.success) {
+        setIsEditing(false);
+        // Clear success message after 3 seconds
+        setTimeout(() => setOperationResult(null), 3000);
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+      setOperationResult({
+        success: false,
+        message: 'Failed to update task'
+      });
+    }
   };
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      deleteTask(task.id);
-      navigate('/tasks');
+  const handleDeleteClick = () => {
+    setDeleteConfirm({ isOpen: true, isLoading: false });
+  };
+
+  const handleConfirmDelete = async () => {
+    setDeleteConfirm(prev => ({ ...prev, isLoading: true }));
+    
+    try {
+      const result = await deleteTask(task.id);
+      if (result.success) {
+        navigate('/tasks');
+      } else {
+        setOperationResult(result);
+        setDeleteConfirm({ isOpen: false, isLoading: false });
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      setOperationResult({
+        success: false,
+        message: 'Failed to delete task'
+      });
+      setDeleteConfirm({ isOpen: false, isLoading: false });
+    }
+  };
+
+  const handleCancelDelete = () => {
+    if (!deleteConfirm.isLoading) {
+      setDeleteConfirm({ isOpen: false, isLoading: false });
     }
   };
 
@@ -88,7 +134,7 @@ export function TaskDetail() {
               Edit
             </button>
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
             >
               <Trash2 size={16} />
@@ -181,7 +227,20 @@ export function TaskDetail() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Status</h2>
             <select
               value={task.status}
-              onChange={(e) => updateTask(task.id, { status: e.target.value as any })}
+              onChange={async (e) => {
+                try {
+                  const result = await updateTask(task.id, { status: e.target.value as any });
+                  if (!result.success) {
+                    setOperationResult(result);
+                  }
+                } catch (error) {
+                  console.error('Error updating status:', error);
+                  setOperationResult({
+                    success: false,
+                    message: 'Failed to update task status'
+                  });
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="To Do">To Do</option>
@@ -192,13 +251,39 @@ export function TaskDetail() {
         </div>
       </div>
 
+      {operationResult && (
+        <div className="mb-6">
+          <ValidationMessage
+            message={operationResult.message}
+            type={operationResult.success ? 'success' : 'error'}
+            errors={operationResult.errors}
+          />
+        </div>
+      )}
+
       {isEditing && (
         <TaskForm
           task={task}
           onSubmit={handleEdit}
-          onCancel={() => setIsEditing(false)}
+          onCancel={() => {
+            setIsEditing(false);
+            setOperationResult(null); // Clear any existing error messages
+          }}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone and you will be redirected to the tasks list."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={deleteConfirm.isLoading}
+      />
     </div>
   );
 }

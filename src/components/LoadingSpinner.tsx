@@ -28,7 +28,7 @@ export function LoadingSpinner({ size = 'md', message }: LoadingSpinnerProps) {
           {message}
         </p>
       )}
-      <span className="sr-only">Cargando...</span>
+      <span className="sr-only">Loading...</span>
     </div>
   );
 }

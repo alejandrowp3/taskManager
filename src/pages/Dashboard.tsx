@@ -1,13 +1,12 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle, Clock, AlertTriangle, Calendar, TrendingUp } from 'lucide-react';
 import { StatsCard } from '../components/StatsCard';
-import { TaskCard } from '../components/TaskCard';
 import { useTasks } from '../hooks/useTasks';
 import { format } from 'date-fns';
 
 export function Dashboard() {
-  const { taskStats, priorityStats, upcomingTasks, allTasks, updateTask, deleteTask } = useTasks();
+  const { taskStats, priorityStats, upcomingTasks, allTasks } = useTasks();
 
   const recentTasks = useMemo(() => 
     allTasks
@@ -15,18 +14,6 @@ export function Dashboard() {
       .slice(0, 6),
     [allTasks]
   );
-
-  const handleStatusChange = useCallback((id: string, status: any) => {
-    updateTask(id, { status });
-  }, [updateTask]);
-
-  const handleEdit = useCallback(() => {}, []);
-  
-  const handleDelete = useCallback((id: string) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      deleteTask(id);
-    }
-  }, [deleteTask]);
 
   return (
     <div className="space-y-8">
@@ -109,7 +96,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Progress by Priority</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Tasks by Priority</h2>
             <TrendingUp className="text-gray-400" size={20} />
           </div>
           <div className="space-y-4">
@@ -156,9 +143,12 @@ export function Dashboard() {
                 className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-gray-900 truncate flex-1">
+                  <Link 
+                    to={`/tasks/${task.id}`}
+                    className="font-medium text-gray-900 truncate flex-1 hover:text-blue-600 transition-colors"
+                  >
                     {task.title}
-                  </h3>
+                  </Link>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     task.status === 'Done' ? 'bg-green-100 text-green-800' :
                     task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :

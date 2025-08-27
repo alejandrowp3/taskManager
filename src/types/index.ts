@@ -22,11 +22,23 @@ export interface TaskFilter {
   search?: string;
 }
 
+// Validation error types
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface TaskOperationResult {
+  success: boolean;
+  errors?: ValidationError[];
+  message?: string;
+}
+
 export interface TaskContextType {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<TaskOperationResult>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<TaskOperationResult>;
+  deleteTask: (id: string) => Promise<TaskOperationResult>;
   filter: TaskFilter;
   setFilter: (filter: TaskFilter) => void;
   reorderTasks: (fromIndex: number, toIndex: number) => void;

@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // Make jest available globally for compatibility
-globalThis.jest = vi;
+(globalThis as any).jest = vi;
 
 // Mock crypto.randomUUID for tests
 Object.defineProperty(globalThis, 'crypto', {
@@ -13,10 +13,10 @@ Object.defineProperty(globalThis, 'crypto', {
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
@@ -24,5 +24,5 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock window.confirm
 Object.defineProperty(window, 'confirm', {
-  value: jest.fn(() => true),
+  value: vi.fn(() => true),
 });

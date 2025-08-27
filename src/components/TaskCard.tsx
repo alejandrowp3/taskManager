@@ -1,5 +1,6 @@
 import React from 'react';
-import { Calendar, User, Tag, Clock, GripVertical } from 'lucide-react';
+import { Calendar, User, Tag, Clock, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Task } from '../types';
 import { format } from 'date-fns';
 
@@ -8,10 +9,6 @@ interface TaskCardProps {
   onStatusChange: (id: string, status: Task['status']) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
-  isDragging?: boolean;
-  isDropTarget?: boolean;
-  dragProps?: React.HTMLAttributes<HTMLDivElement>;
-  dropProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
 const priorityColors = {
@@ -30,11 +27,7 @@ export function TaskCard({
   task, 
   onStatusChange, 
   onEdit, 
-  onDelete, 
-  isDragging, 
-  isDropTarget,
-  dragProps,
-  dropProps
+  onDelete
 }: TaskCardProps) {
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onStatusChange(task.id, e.target.value as Task['status']);
@@ -42,23 +35,13 @@ export function TaskCard({
 
   const cardClasses = `
     bg-white rounded-lg shadow-md p-6 border border-gray-200 
-    transition-all duration-200 cursor-move
-    ${isDragging ? 'opacity-50 scale-105 shadow-xl transform rotate-2' : ''}
-    ${isDropTarget ? 'border-blue-400 border-2 bg-blue-50' : 'hover:shadow-lg'}
-    ${!isDragging && !isDropTarget ? 'hover:shadow-lg' : ''}
+    transition-all duration-200 hover:shadow-lg
   `.trim();
 
   return (
-    <div 
-      className={cardClasses}
-      {...dragProps}
-      {...dropProps}
-    >
+    <div className={cardClasses}>
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-start gap-2 flex-1">
-          <div className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
-            <GripVertical size={16} />
-          </div>
+        <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 flex-1">{task.title}</h3>
         </div>
         <div className="flex gap-2 ml-4">
@@ -117,6 +100,13 @@ export function TaskCard({
       )}
 
       <div className="flex justify-end gap-2">
+        <Link
+          to={`/tasks/${task.id}`}
+          className="px-3 py-1 text-sm text-green-600 hover:text-green-800 hover:bg-green-50 rounded inline-flex items-center gap-1"
+        >
+          <Eye size={14} />
+          View
+        </Link>
         <button
           onClick={() => onEdit(task)}
           className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"

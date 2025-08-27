@@ -9,8 +9,13 @@ export function useTasks() {
     return tasks.filter(task => {
       if (filter.status && task.status !== filter.status) return false;
       if (filter.priority && task.priority !== filter.priority) return false;
-      if (filter.assignee && task.assignee !== filter.assignee) return false;
-      if (filter.search && !task.title.toLowerCase().includes(filter.search.toLowerCase())) return false;
+      if (filter.assignee && (!task.assignee || !task.assignee.toLowerCase().includes(filter.assignee.toLowerCase()))) return false;
+      if (filter.search) {
+        const searchLower = filter.search.toLowerCase();
+        const matchesTitle = task.title.toLowerCase().includes(searchLower);
+        const matchesDescription = task.description?.toLowerCase().includes(searchLower);
+        if (!matchesTitle && !matchesDescription) return false;
+      }
       if (filter.tags && filter.tags.length > 0) {
         const hasMatchingTag = filter.tags.some(tag => 
           task.tags?.includes(tag)

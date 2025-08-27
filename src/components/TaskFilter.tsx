@@ -33,7 +33,7 @@ export function TaskFilter({ filter, onFilterChange }: TaskFilterProps) {
               type="text"
               value={filter.search || ''}
               onChange={(e) => handleChange('search', e.target.value)}
-              placeholder="Search tasks..."
+              placeholder="Search title, description..."
               className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -79,7 +79,7 @@ export function TaskFilter({ filter, onFilterChange }: TaskFilterProps) {
             type="text"
             value={filter.assignee || ''}
             onChange={(e) => handleChange('assignee', e.target.value)}
-            placeholder="Assignee name"
+            placeholder="Filter by assignee..."
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

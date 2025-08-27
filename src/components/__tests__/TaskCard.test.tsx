@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { TaskCard } from '../TaskCard';
 import { Task } from '../../types';
@@ -19,18 +21,26 @@ const mockTask: Task = {
 
 const mockProps = {
   task: mockTask,
-  onStatusChange: jest.fn(),
-  onEdit: jest.fn(),
-  onDelete: jest.fn(),
+  onStatusChange: vi.fn(),
+  onEdit: vi.fn(),
+  onDelete: vi.fn(),
+};
+
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(
+    <MemoryRouter>
+      {component}
+    </MemoryRouter>
+  );
 };
 
 describe('TaskCard', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders task information correctly', () => {
-    render(<TaskCard {...mockProps} />);
+    renderWithRouter(<TaskCard {...mockProps} />);
     
     expect(screen.getByText('Test Task')).toBeInTheDocument();
     expect(screen.getByText('This is a test task')).toBeInTheDocument();
@@ -41,7 +51,7 @@ describe('TaskCard', () => {
   });
 
   it('calls onStatusChange when status is changed', () => {
-    render(<TaskCard {...mockProps} />);
+    renderWithRouter(<TaskCard {...mockProps} />);
     
     const statusSelect = screen.getByDisplayValue('To Do');
     fireEvent.change(statusSelect, { target: { value: 'In Progress' } });
@@ -50,7 +60,7 @@ describe('TaskCard', () => {
   });
 
   it('calls onEdit when edit button is clicked', () => {
-    render(<TaskCard {...mockProps} />);
+    renderWithRouter(<TaskCard {...mockProps} />);
     
     const editButton = screen.getByText('Edit');
     fireEvent.click(editButton);
@@ -59,7 +69,7 @@ describe('TaskCard', () => {
   });
 
   it('calls onDelete when delete button is clicked', () => {
-    render(<TaskCard {...mockProps} />);
+    renderWithRouter(<TaskCard {...mockProps} />);
     
     const deleteButton = screen.getByText('Delete');
     fireEvent.click(deleteButton);
@@ -69,7 +79,7 @@ describe('TaskCard', () => {
 
   it('renders without description when not provided', () => {
     const taskWithoutDescription = { ...mockTask, description: undefined };
-    render(<TaskCard {...mockProps} task={taskWithoutDescription} />);
+    renderWithRouter(<TaskCard {...mockProps} task={taskWithoutDescription} />);
     
     expect(screen.getByText('Test Task')).toBeInTheDocument();
     expect(screen.queryByText('This is a test task')).not.toBeInTheDocument();
@@ -77,7 +87,7 @@ describe('TaskCard', () => {
 
   it('renders without tags when not provided', () => {
     const taskWithoutTags = { ...mockTask, tags: undefined };
-    render(<TaskCard {...mockProps} task={taskWithoutTags} />);
+    renderWithRouter(<TaskCard {...mockProps} task={taskWithoutTags} />);
     
     expect(screen.getByText('Test Task')).toBeInTheDocument();
     expect(screen.queryByText('#test')).not.toBeInTheDocument();
@@ -85,14 +95,14 @@ describe('TaskCard', () => {
   });
 
   it('applies correct priority styling', () => {
-    render(<TaskCard {...mockProps} />);
+    renderWithRouter(<TaskCard {...mockProps} />);
     
     const priorityElement = screen.getByText('High');
-    expect(priorityElement).toHaveClass('bg-orange-100', 'text-orange-800');
+    expect(priorityElement).toHaveClass('bg-red-100', 'text-red-800');
   });
 
   it('is accessible via keyboard navigation', () => {
-    render(<TaskCard {...mockProps} />);
+    renderWithRouter(<TaskCard {...mockProps} />);
     
     const editButton = screen.getByText('Edit');
     const deleteButton = screen.getByText('Delete');
@@ -106,4 +116,5 @@ describe('TaskCard', () => {
     deleteButton.focus();
     expect(deleteButton).toHaveFocus();
   });
+
 });

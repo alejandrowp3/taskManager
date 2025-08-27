@@ -1,5 +1,6 @@
 import React from 'react';
-import { Calendar, User, Tag, Clock, GripVertical } from 'lucide-react';
+import { Calendar, User, Tag, Clock, GripVertical, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Task } from '../types';
 import { format } from 'date-fns';
 
@@ -41,9 +42,12 @@ export function KanbanCard({
           <div className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
             <GripVertical size={14} />
           </div>
-          <h3 className="font-medium text-gray-900 text-sm leading-tight flex-1">
+          <Link 
+            to={`/tasks/${task.id}`}
+            className="font-medium text-gray-900 text-sm leading-tight flex-1 hover:text-blue-600 transition-colors"
+          >
             {task.title}
-          </h3>
+          </Link>
         </div>
       </div>
 
@@ -87,6 +91,13 @@ export function KanbanCard({
         </div>
         
         <div className="flex gap-1">
+          <Link
+            to={`/tasks/${task.id}`}
+            className="px-2 py-1 text-green-600 hover:bg-green-50 rounded text-xs inline-flex items-center"
+            title="View Details"
+          >
+            <Eye size={12} />
+          </Link>
           <button
             onClick={() => onEdit(task)}
             className="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs"
