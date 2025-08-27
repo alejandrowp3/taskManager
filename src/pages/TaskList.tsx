@@ -1,0 +1,181 @@
+import React, { useState, useMemo, useCallback } from 'react';
+import { Plus, Move } from 'lucide-react';
+import { TaskCard } from '../components/TaskCard';
+import { TaskForm } from '../components/TaskForm';
+import { TaskFilter } from '../components/TaskFilter';
+import { useTasks } from '../hooks/useTasks';
+import { useDragAndDrop } from '../hooks/useDragAndDrop';
+import { Task } from '../types';
+
+export function TaskList() {
+  const { tasks, addTask, updateTask, deleteTask, filter, setFilter, reorderTasks } = useTasks();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | undefined>();
+  const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'createdAt'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const handleAddTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    addTask(taskData);
+    setIsFormOpen(false);
+  }, [addTask]);
+
+  const handleEditTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (editingTask) {
+      updateTask(editingTask.id, taskData);
+      setEditingTask(undefined);
+    }
+  }, [editingTask, updateTask]);
+
+  const handleStatusChange = useCallback((id: string, status: Task['status']) => {
+    updateTask(id, { status });
+  }, [updateTask]);
+
+  const handleEditClick = useCallback((task: Task) => {
+    setEditingTask(task);
+  }, []);
+
+  const handleDeleteTask = useCallback((id: string) => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      deleteTask(id);
+    }
+  }, [deleteTask]);
+
+  const sortedTasks = useMemo(() => {
+    const sorted = [...tasks].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'dueDate':
+          const aDate = a.dueDate?.getTime() || 0;
+          const bDate = b.dueDate?.getTime() || 0;
+          comparison = aDate - bDate;
+          break;
+        case 'priority':
+          const priorityOrder = { Low: 1, Medium: 2, High: 3 };
+          comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+          break;
+        case 'createdAt':
+          comparison = a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    return sorted;
+  }, [tasks, sortBy, sortOrder]);
+
+  // Drag and drop functionality
+  const handleReorder = useCallback((fromIndex: number, toIndex: number) => {
+    reorderTasks(fromIndex, toIndex);
+  }, [reorderTasks]);
+
+  const {
+    getDragProps,
+    getDropProps,
+    isDragging,
+    isDropTarget,
+  } = useDragAndDrop(sortedTasks, handleReorder);
+
+  const toggleSort = useCallback((newSortBy: 'dueDate' | 'priority' | 'createdAt') => {
+    if (sortBy === newSortBy) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('asc');
+    }
+  }, [sortBy]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Task Management</h1>
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+          aria-label="Create new task"
+        >
+          <Plus size={20} />
+          New Task
+        </button>
+      </div>
+
+      <TaskFilter filter={filter} onFilterChange={setFilter} />
+
+      <div className="flex gap-4 items-center">
+        <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-md">
+          <Move size={16} />
+          <span>Drag cards to reorder</span>
+        </div>
+        <span className="text-sm font-medium text-gray-700">Sort by:</span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => toggleSort('createdAt')}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              sortBy === 'createdAt'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Creation Date {sortBy === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
+          </button>
+          <button
+            onClick={() => toggleSort('dueDate')}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              sortBy === 'dueDate'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Due Date {sortBy === 'dueDate' && (sortOrder === 'asc' ? '↑' : '↓')}
+          </button>
+          <button
+            onClick={() => toggleSort('priority')}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              sortBy === 'priority'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Priority {sortBy === 'priority' && (sortOrder === 'asc' ? '↑' : '↓')}
+          </button>
+        </div>
+        <span className="text-sm text-gray-500">({sortedTasks.length} tasks)</span>
+      </div>
+
+      {sortedTasks.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No tasks found</p>
+          <p className="text-gray-400 mt-2">Try adjusting the filters or creating a new task</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {sortedTasks.map((task, index) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onStatusChange={handleStatusChange}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteTask}
+              isDragging={isDragging(index)}
+              isDropTarget={isDropTarget(index)}
+              dragProps={getDragProps(task, index)}
+              dropProps={getDropProps(index)}
+            />
+          ))}
+        </div>
+      )}
+
+      {(isFormOpen || editingTask) && (
+        <TaskForm
+          task={editingTask}
+          onSubmit={editingTask ? handleEditTask : handleAddTask}
+          onCancel={() => {
+            setIsFormOpen(false);
+            setEditingTask(undefined);
+          }}
+        />
+      )}
+    </div>
+  );
+}
